@@ -239,13 +239,15 @@ class Responsys
         );
         $headers       = array_merge($defaultHeders, $headers);
 
-        $dataJSON = json_encode($data);
-        // Fix double slashes for unicode sequences
-        $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
         switch ($method) {
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $dataJSON);
+                if (!empty($data)) {
+                    $dataJSON = json_encode($data);
+                    // Fix double slashes for unicode sequences
+                    $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $dataJSON);
+                }
                 break;
             case 'PUT':
                 curl_setopt($ch, CURLOPT_PUT, true);
