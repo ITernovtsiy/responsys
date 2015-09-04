@@ -59,9 +59,18 @@ class Responsys
         $username = $this->ini->variable('Auth', 'Username');
         $password = $this->ini->variable('Auth', 'Passowrd');
 
-        $uri = rtrim($this->loginURL, '/') . '/rest/api/v1/auth/token?user_name=' . $username . '&password=' . $password . '&auth_type=password';
+        $uri = rtrim($this->loginURL, '/') . '/rest/api/v1/auth/token';
 
-        $result = $this->sendRequest($uri);
+        $data    = array(
+            'user_name' => $username,
+            'password'  => $password,
+            'auth_type' => 'password'
+        );
+        $headers = array(
+            'content_type' => 'Content-Type: application/x-www-form-urlencoded'
+        );
+        $result  = $this->sendRequest($uri, $data, 'POST', $headers, false);
+
         return isset($result['authToken']) ? $result['authToken'] : null;
     }
 
@@ -215,9 +224,6 @@ class Responsys
     {
         $headers[] = 'Authorization: ' . $this->authToken;
 
-        /** @see https://support.nxc.no/browse/TIGGHASUPPORT-540 */
-        $headers['content_type'] = 'Content-Type: application/x-www-form-urlencoded';
-
         return $this->sendRequest($uri, $data, $method, $headers);
     }
 
@@ -229,7 +235,7 @@ class Responsys
      * @param array $headers
      * @return array
      */
-    private function sendRequest($uri, array $data = array(), $method = 'POST', array $headers = array())
+    private function sendRequest($uri, array $data = array(), $method = 'POST', array $headers = array(), $jsonFormat = true)
     {
         $ch = curl_init($uri);
 
@@ -246,10 +252,15 @@ class Responsys
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
                 if (!empty($data)) {
-                    $dataJSON = json_encode($data);
-                    // Fix double slashes for unicode sequences
-                    $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $dataJSON);
+                    if ($jsonFormat) {
+                        $data = json_encode($data);
+                        // Fix double slashes for unicode sequences
+                        $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
+                    } else {
+                        $data = http_build_query($data);
+                    }
+
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
                 }
                 break;
             case 'PUT':
