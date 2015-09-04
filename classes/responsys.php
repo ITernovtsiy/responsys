@@ -255,7 +255,7 @@ class Responsys
                     if ($jsonFormat) {
                         $data = json_encode($data);
                         // Fix double slashes for unicode sequences
-                        $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
+                        $data = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $data);
                     } else {
                         $data = http_build_query($data);
                     }
@@ -284,14 +284,14 @@ class Responsys
 
         $log = new ResponsysLog();
         $log->setAttribute('request_uri', $uri);
-        $log->setAttribute('request', self::json_pretty($dataJSON));
+        $log->setAttribute('request', self::json_pretty($data));
         $log->setAttribute('request_headers', implode("\n", $headers));
         $log->setAttribute('response_status', $info['http_code']);
         $log->setAttribute('response_headers', $header);
         $log->setAttribute('response_time', $info['total_time']);
         $log->setAttribute('response', $body);
         if (curl_error($ch)) {
-            $log->setAttribute('response_error', curl_error($curl));
+            $log->setAttribute('response_error', curl_error($ch));
         }
         $log->store();
 
