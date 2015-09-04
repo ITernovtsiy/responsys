@@ -215,6 +215,9 @@ class Responsys
     {
         $headers[] = 'Authorization: ' . $this->authToken;
 
+        /** @see https://support.nxc.no/browse/TIGGHASUPPORT-540 */
+        $headers['content_type'] = 'Content-Type: application/x-www-form-urlencoded';
+
         return $this->sendRequest($uri, $data, $method, $headers);
     }
 
