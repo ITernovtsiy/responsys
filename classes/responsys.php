@@ -93,8 +93,8 @@ class Responsys
                 'updateOnMatch'              => 'REPLACE_ALL',
                 'matchColumnName1'           => 'CUSTOMER_ID_',
                 'matchColumnName2'           => 'DATABASE_ID',
-                'matchOperator'              => 'NONE',
-                'optoutValue'                => 0,
+                'matchOperator'              => 'AND',
+                'optoutValue'                => '0',
                 'rejectRecordIfChannelEmpty' => null,
                 'defaultPermissionStatus'    => 'OPTIN'
             )
@@ -186,8 +186,8 @@ class Responsys
                 'updateOnMatch'              => 'REPLACE_ALL',
                 'matchColumnName1'           => 'EMAIL_ADDRESS_',
                 'matchColumnName2'           => 'DATABASE_ID',
-                'matchOperator'              => 'NONE',
-                'optoutValue'                => 'O',
+                'matchOperator'              => 'AND',
+                'optoutValue'                => '0',
                 'rejectRecordIfChannelEmpty' => null,
                 'defaultPermissionStatus'    => 'OPTIN'
             ),
