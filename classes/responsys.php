@@ -59,9 +59,18 @@ class Responsys
         $username = $this->ini->variable('Auth', 'Username');
         $password = $this->ini->variable('Auth', 'Passowrd');
 
-        $uri = rtrim($this->loginURL, '/') . '/rest/api/v1/auth/token?user_name=' . $username . '&password=' . $password . '&auth_type=password';
+        $uri = rtrim($this->loginURL, '/') . '/rest/api/v1/auth/token';
 
-        $result = $this->sendRequest($uri);
+        $data    = array(
+            'user_name' => $username,
+            'password'  => $password,
+            'auth_type' => 'password'
+        );
+        $headers = array(
+            'content_type' => 'Content-Type: application/x-www-form-urlencoded'
+        );
+        $result  = $this->sendRequest($uri, $data, 'POST', $headers, false);
+
         return isset($result['authToken']) ? $result['authToken'] : null;
     }
 
@@ -226,7 +235,7 @@ class Responsys
      * @param array $headers
      * @return array
      */
-    private function sendRequest($uri, array $data = array(), $method = 'POST', array $headers = array())
+    private function sendRequest($uri, array $data = array(), $method = 'POST', array $headers = array(), $jsonFormat = true)
     {
         $ch = curl_init($uri);
 
@@ -239,13 +248,20 @@ class Responsys
         );
         $headers       = array_merge($defaultHeders, $headers);
 
-        $dataJSON = json_encode($data);
-        // Fix double slashes for unicode sequences
-        $dataJSON = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $dataJSON);
         switch ($method) {
             case 'POST':
                 curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $dataJSON);
+                if (!empty($data)) {
+                    if ($jsonFormat) {
+                        $data = json_encode($data);
+                        // Fix double slashes for unicode sequences
+                        $data = preg_replace('/\\\\\\\\u([0-9a-fA-F]{4})/u', '\u$1', $data);
+                    } else {
+                        $data = http_build_query($data);
+                    }
+
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                }
                 break;
             case 'PUT':
                 curl_setopt($ch, CURLOPT_PUT, true);
@@ -268,14 +284,14 @@ class Responsys
 
         $log = new ResponsysLog();
         $log->setAttribute('request_uri', $uri);
-        $log->setAttribute('request', self::json_pretty($dataJSON));
+        $log->setAttribute('request', self::json_pretty($data));
         $log->setAttribute('request_headers', implode("\n", $headers));
         $log->setAttribute('response_status', $info['http_code']);
         $log->setAttribute('response_headers', $header);
         $log->setAttribute('response_time', $info['total_time']);
         $log->setAttribute('response', $body);
         if (curl_error($ch)) {
-            $log->setAttribute('response_error', curl_error($curl));
+            $log->setAttribute('response_error', curl_error($ch));
         }
         $log->store();
 
